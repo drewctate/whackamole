@@ -1,0 +1,16 @@
+{
+  "name": "molegame",
+  "version": "1.0.0",
+  "description": "Whackamole with atom.coffee",
+  "main": "atom.js",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^2.0.0",
+    "lite-server": "^2.2.0"
+  },
+  "scripts": {
+    "start": "npm run lite",
+    "lite": "lite-server"
+  }
+}
