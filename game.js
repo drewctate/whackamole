@@ -1,7 +1,14 @@
 (function () {
   atom.input.bind(atom.key.LEFT_ARROW, 'left');
   game = Object.create(Game.prototype);
+  atom.currentMoleTime = 0;
+  atom.tillNewMole = 2;
   game.update = function(dt) {
+    atom.currentMoleTime += dt;
+    if (atom.currentMoleTime > atom.tillNewMole) {
+      game.activeMole = Math.floor(Math.random() * 4);
+      atom.currentMoleTime = 0;
+    }
     if (atom.input.pressed('left')) {
       return console.log("player started moving left");
     } else if (atom.input.down('left')) {
@@ -11,6 +18,11 @@
   game.draw = function () {
     this.drawBackground();
     for (var i = 0; i < game.holes.length; i++) {
+      if (i === game.activeMole) {
+        game.holes[i].active = true;
+      } else {
+        game.holes[i].active = false;
+      }
       game.holes[i].draw();
     }
   };
@@ -106,7 +118,7 @@
       var newHole = Object.create(game.hole);
       newHole.holeLocation = [xOffset + game.hole.spacing*i, yOffset];
       newHole.holeLabel = holeLabels[i];
-      newHole.active = true;
+      newHole.active = false;
       game.holes.push(newHole);
     }
   };
