@@ -10,14 +10,8 @@
   };
   game.draw = function () {
     this.drawBackground();
-    this.drawHoles(['A', 'S', 'D', 'F'], 145, 85);
-    this.mole.draw(100, 100);
-  };
-  game.drawHoles = function (holeLabels, xOffset, yOffset) {
-    for (var i = 0; i < holeLabels.length; i++) {
-      atom.context.fillStyle = game.hole.color;
-      var holeLocation = [xOffset + game.hole.spacing*i, yOffset];
-      game.hole.draw(holeLocation, holeLabels[i]);
+    for (var i = 0; i < game.holes.length; i++) {
+      game.holes[i].draw();
     }
   };
   game.hole = {
@@ -27,13 +21,27 @@
     labelOffset: 140,
     labelColor: '#000',
     labelFont: '130px monospace',
-    draw: function (holeLocation, holeLabel) {
+    moleOffset: 20,
+    draw: function () {
+      this.drawHole();
+      this.drawLabel();
+      if (this.active === true) {
+        this.drawMole(this.holeLocation[0], this.holeLocation[1] - this.moleOffset);
+      }
+    },
+    drawHole: function () {
+      atom.context.fillStyle = this.color;
       atom.context.beginPath();
-      atom.context.arc(holeLocation[0], atom.height/2+holeLocation[1], this.size, 0, Math.PI*2, false);
+      atom.context.arc(this.holeLocation[0], this.holeLocation[1], this.size, 0, Math.PI*2, false);
       atom.context.fill();
+    },
+    drawLabel: function () {
       atom.context.fillStyle = this.labelColor;
       atom.context.font = this.labelFont;
-      atom.context.fillText(holeLabel, holeLocation[0] - this.size, atom.height/2 + holeLocation[1] + this.labelOffset);
+      atom.context.fillText(this.holeLabel, this.holeLocation[0] - this.size, this.holeLocation[1] + this.labelOffset);
+    },
+    drawMole: function (xPos, yPos) {
+      game.mole.draw(xPos, yPos);
     }
   };
   game.mole = {
@@ -92,11 +100,22 @@
     atom.context.fillStyle = '#2e2';
     atom.context.fillRect(0, atom.height/2, atom.width, atom.height/2);
   };
+  game.makeHoles = function (holeLabels, xOffset, yOffset) {
+    game.holes = [];
+    for (var i = 0; i < holeLabels.length; i++) {
+      var newHole = Object.create(game.hole);
+      newHole.holeLocation = [xOffset + game.hole.spacing*i, yOffset];
+      newHole.holeLabel = holeLabels[i];
+      newHole.active = true;
+      game.holes.push(newHole);
+    }
+  };
   window.onblur = function () {
     return game.stop();
   };
   window.onfocus = function () {
     return game.run();
   };
+  game.makeHoles(['A', 'S', 'D', 'F'], 145, atom.height/2 + 85);
   game.run();
 }).call(this);
