@@ -38,7 +38,7 @@
     with_key: function(key){
       if (!!(game.activeMole + 1) === true && key === game.holes[game.activeMole].holeLabel){
         this.total += 1;
-        game.activeMole -= 1;
+        game.activeMole = -2; // no active mole
         this.bopped = true;
       }
       else{
