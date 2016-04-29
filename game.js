@@ -5,7 +5,10 @@
     atom.input.bind(atom.key[game.keys[i]], game.keys[i]);
   }
   atom.input.bind(atom.key.ENTER, 'ENTER');
+  atom.input.bind(atom.key.LEFT_ARROW, 'left');
+  atom.input.bind(atom.key.RIGHT_ARROW, 'right');
   game.mode = 'idle';
+  game.difficulty = 0;
   atom.currentMoleTime = 0;
   atom.tillNewMole = 2;
   game.bop = {
@@ -29,7 +32,18 @@
   };
   game.update = function(dt) {
     if (game.mode === 'idle') {
-      if (atom.input.down('ENTER')) {
+      if (atom.input.pressed('ENTER')) {
+        game.mode = 'select';
+      }
+    }
+    else if (game.mode === 'select') {
+      if (atom.input.pressed('left')) {
+        if (game.difficulty > 0) game.difficulty--;
+      }
+      else if (atom.input.pressed('right')) {
+        if (game.difficulty < 2) game.difficulty++;
+      }
+      else if (atom.input.pressed('ENTER')) {
         game.mode = 'play';
       }
     }
@@ -59,6 +73,9 @@
     this.drawBackground();
     if (game.mode === 'idle') {
       this.drawStartScreen();
+    }
+    else if (game.mode == 'select') {
+      this.drawSelectScreen();
     }
     else if (game.mode === 'play') {
       for (var i = 0; i < game.holes.length; i++) {
@@ -163,6 +180,50 @@
     atom.context.fillStyle = '#000';
     atom.context.font = '40px monospace';
     atom.context.fillText('Press enter to begin!', atom.width/2 - 240, atom.height/2 - 20);
+  };
+  game.drawSelectScreen = function () {
+    var computeCenterCoords = function (box) {
+      return [(atom.width - box.width)/2, (atom.height - box.height)/2];
+    };
+    var innerBox = {
+      width: 600,
+      height: 80,
+      coords: [0,0],
+      color: '#34e'
+    };
+
+    var selectBar = {
+      width: 150,
+      height: 10,
+      color: '#f00'
+    };
+
+    innerBox.coords = computeCenterCoords(innerBox);
+    var difficultyLabels = ['Easy', 'Hard', 'Insane'];
+    var borderWidth = 8;
+
+    atom.context.beginPath();
+    // draw border
+    atom.context.fillStyle = '#000';
+    atom.context.fillRect(innerBox.coords[0] - borderWidth, innerBox.coords[1] - borderWidth, innerBox.width + borderWidth * 2, innerBox.height + borderWidth * 2);
+    // draw box
+    atom.context.fillStyle = innerBox.color;
+    atom.context.fillRect(innerBox.coords[0], innerBox.coords[1], innerBox.width, innerBox.height);
+    // draw labels
+    atom.context.fillStyle = '#000';
+    atom.context.font = '40px monospace';
+    atom.context.fillText(difficultyLabels[0], innerBox.coords[0] + 8, innerBox.coords[1] + 40);
+    atom.context.fillText(difficultyLabels[1], innerBox.coords[0] + innerBox.width/2 - 60, innerBox.coords[1] + 40);
+    atom.context.fillText(difficultyLabels[2], innerBox.coords[0] + innerBox.width - 150, innerBox.coords[1] + 40);
+    // draw select bar in correct position
+    atom.context.fillStyle = selectBar.color;
+    if (game.difficulty === 0) {
+      atom.context.fillRect(innerBox.coords[0] + 8, innerBox.coords[1] + 40, selectBar.width, selectBar.height);
+    } else if (game.difficulty === 1) {
+      atom.context.fillRect(innerBox.coords[0] + innerBox.width/2 - 80, innerBox.coords[1] + 40, selectBar.width, selectBar.height);
+    } else {
+      atom.context.fillRect(innerBox.coords[0] + innerBox.width - 150, innerBox.coords[1] + 40, selectBar.width, selectBar.height);
+    }
   };
   game.makeHoles = function (holeLabels, xOffset, yOffset) {
     game.holes = [];
