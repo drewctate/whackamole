@@ -4,6 +4,8 @@
   for (var i = 0; i < game.keys.length; i++){
     atom.input.bind(atom.key[game.keys[i]], game.keys[i]);
   }
+  atom.input.bind(atom.key.ENTER, 'ENTER');
+  game.mode = 'idle';
   atom.currentMoleTime = 0;
   atom.tillNewMole = 2;
   game.bop = {
@@ -26,37 +28,49 @@
     }
   };
   game.update = function(dt) {
-    atom.currentMoleTime += dt;
-    if (atom.currentMoleTime > atom.tillNewMole) {
-      var newActive = Math.floor(Math.random() * 4);
-      while (newActive === game.activeMole) { // prevent mole sitting in same hole for 2 cycles
-        newActive = Math.floor(Math.random() * 4);
-      }
-      game.activeMole = newActive;
-      atom.currentMoleTime = 0;
-      if (game.bop.bopped === false) {
-        if (game.bob.total >= 0) game.bop.total -= 1;
-      } else {
-        game.bop.bopped = false;
+    if (game.mode === 'idle') {
+      if (atom.input.down('ENTER')) {
+        game.mode = 'play';
       }
     }
-    for (var i = 0; i < game.keys.length; i++) {
-      if (atom.input.pressed(game.keys[i])) {
-        game.bop.with_key(game.keys[i]);
+    else if (game.mode === 'play') {
+      atom.currentMoleTime += dt;
+      if (atom.currentMoleTime > atom.tillNewMole) {
+        var newActive = Math.floor(Math.random() * 4);
+        while (newActive === game.activeMole) { // prevent mole sitting in same hole for 2 cycles
+          newActive = Math.floor(Math.random() * 4);
+        }
+        game.activeMole = newActive;
+        atom.currentMoleTime = 0;
+        if (game.bop.bopped === false) {
+          if (game.bob.total >= 0) game.bop.total -= 1;
+        } else {
+          game.bop.bopped = false;
+        }
+      }
+      for (var i = 0; i < game.keys.length; i++) {
+        if (atom.input.pressed(game.keys[i])) {
+          game.bop.with_key(game.keys[i]);
+        }
       }
     }
   };
   game.draw = function () {
     this.drawBackground();
-    for (var i = 0; i < game.holes.length; i++) {
-      if (i === game.activeMole) {
-        game.holes[i].active = true;
-      } else {
-        game.holes[i].active = false;
-      }
-      game.holes[i].draw();
+    if (game.mode === 'idle') {
+      this.drawStartScreen();
     }
-    this.bop.draw();
+    else if (game.mode === 'play') {
+      for (var i = 0; i < game.holes.length; i++) {
+        if (i === game.activeMole) {
+          game.holes[i].active = true;
+        } else {
+          game.holes[i].active = false;
+        }
+        game.holes[i].draw();
+      }
+      this.bop.draw();
+    }
   };
   game.hole = {
     size: 40,
@@ -143,6 +157,12 @@
     atom.context.fill();
     atom.context.fillStyle = '#2e2';
     atom.context.fillRect(0, atom.height/2, atom.width, atom.height/2);
+  };
+  game.drawStartScreen = function () {
+    atom.context.beginPath();
+    atom.context.fillStyle = '#000';
+    atom.context.font = '40px monospace';
+    atom.context.fillText('Press enter to begin!', atom.width/2 - 240, atom.height/2 - 20);
   };
   game.makeHoles = function (holeLabels, xOffset, yOffset) {
     game.holes = [];
