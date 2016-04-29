@@ -1,3 +1,16 @@
+/*
+Level Specs:
+Difficulty EASY:
+  Light brown mole
+  One mole, intermittent pauses
+Difficulty HARD:
+  Dark brown mole
+  Twice as fast
+Difficulty INSANE:
+  Black mole
+  Twice as fast
+*/
+
 (function () {
   game = Object.create(Game.prototype);
   game.keys = ['A', 'S', 'D', 'F'];
@@ -9,8 +22,8 @@
   atom.input.bind(atom.key.RIGHT_ARROW, 'right');
   game.mode = 'idle';
   game.difficulty = 0;
+  game.moleSpeeds = [2, 1, 0.52];
   atom.currentMoleTime = 0;
-  atom.tillNewMole = 2;
   game.bop = {
     bopped: true,
     total:0,
@@ -44,10 +57,14 @@
         if (game.difficulty < 2) game.difficulty++;
       }
       else if (atom.input.pressed('ENTER')) {
+        game.mole = game.makeMole(game.difficulty);
         game.mode = 'play';
       }
     }
     else if (game.mode === 'play') {
+      // Set speed delay according to difficulty
+      atom.tillNewMole = game.moleSpeeds[game.difficulty];
+
       atom.currentMoleTime += dt;
       if (atom.currentMoleTime > atom.tillNewMole) {
         var newActive = Math.floor(Math.random() * 4);
@@ -119,51 +136,63 @@
       game.mole.draw(xPos, yPos);
     }
   };
-  game.mole = {
-    size: 40,
-    color: '#cc6600',
-    noseSize: 8,
-    noseColor: '#ff0000',
-    eyeSize: 5,
-    eyeColor: '#000',
-    eyeOffset: 10,
-    draw: function (xPos, yPos) {
-      this.drawHead(xPos, yPos);
-      this.drawNose(xPos, yPos);
-      this.drawEyes(xPos, yPos);
-      this.drawWhiskers(xPos, yPos);
-    },
-    drawHead: function (xPos, yPos) {
-      atom.context.beginPath();
-      atom.context.fillStyle = this.color;
-      atom.context.arc(xPos, yPos, this.size, 0, Math.PI*2, false);
-      atom.context.fill();
-    },
-    drawNose: function (xPos, yPos) {
-      atom.context.beginPath();
-      atom.context.fillStyle = this.noseColor;
-      atom.context.arc(xPos, yPos, this.noseSize, 0, Math.PI*2, false);
-      atom.context.fill();
-    },
-    drawEyes: function (xPos, yPos) {
-      atom.context.beginPath();
-      atom.context.fillStyle = this.eyeColor;
-      atom.context.arc(xPos - this.eyeOffset, yPos - this.eyeOffset, this.eyeSize, 0, Math.PI*2, false);
-      atom.context.arc(xPos + this.eyeOffset, yPos - this.eyeOffset, this.eyeSize, 0, Math.PI*2, false);
-      atom.context.fill();
-    },
-    drawWhiskers: function (xPos, yPos) {
-      atom.context.beginPath();
-      atom.context.moveTo(xPos - 10, yPos);
-      atom.context.lineTo(xPos - 30, yPos);
-      atom.context.moveTo(xPos + 10, yPos);
-      atom.context.lineTo(xPos + 30, yPos);
-      atom.context.moveTo(xPos - 10, yPos + 5);
-      atom.context.lineTo(xPos - 30, yPos + 10);
-      atom.context.moveTo(xPos + 10, yPos + 5);
-      atom.context.lineTo(xPos + 30, yPos + 10);
-      atom.context.stroke();
+  game.makeMole = function (difficulty) {
+    var mole = {
+      size: 40,
+      color: '#cc6600',
+      noseSize: 8,
+      noseColor: '#ff0000',
+      eyeSize: 5,
+      eyeColor: '#000',
+      eyeOffset: 10,
+      whiskerColor: '#000',
+      draw: function (xPos, yPos) {
+        this.drawHead(xPos, yPos);
+        this.drawNose(xPos, yPos);
+        this.drawEyes(xPos, yPos);
+        this.drawWhiskers(xPos, yPos);
+      },
+      drawHead: function (xPos, yPos) {
+        atom.context.beginPath();
+        atom.context.fillStyle = this.color;
+        atom.context.arc(xPos, yPos, this.size, 0, Math.PI*2, false);
+        atom.context.fill();
+      },
+      drawNose: function (xPos, yPos) {
+        atom.context.beginPath();
+        atom.context.fillStyle = this.noseColor;
+        atom.context.arc(xPos, yPos, this.noseSize, 0, Math.PI*2, false);
+        atom.context.fill();
+      },
+      drawEyes: function (xPos, yPos) {
+        atom.context.beginPath();
+        atom.context.fillStyle = this.eyeColor;
+        atom.context.arc(xPos - this.eyeOffset, yPos - this.eyeOffset, this.eyeSize, 0, Math.PI*2, false);
+        atom.context.arc(xPos + this.eyeOffset, yPos - this.eyeOffset, this.eyeSize, 0, Math.PI*2, false);
+        atom.context.fill();
+      },
+      drawWhiskers: function (xPos, yPos) {
+        atom.context.beginPath();
+        atom.context.strokeStyle = this.whiskerColor;
+        atom.context.moveTo(xPos - 10, yPos);
+        atom.context.lineTo(xPos - 30, yPos);
+        atom.context.moveTo(xPos + 10, yPos);
+        atom.context.lineTo(xPos + 30, yPos);
+        atom.context.moveTo(xPos - 10, yPos + 5);
+        atom.context.lineTo(xPos - 30, yPos + 10);
+        atom.context.moveTo(xPos + 10, yPos + 5);
+        atom.context.lineTo(xPos + 30, yPos + 10);
+        atom.context.stroke();
+      }
+    };
+    if (difficulty === 1) {
+      mole.color = '#663300';
+    } else if (difficulty === 2) {
+      mole.color = '#000';
+      mole.eyeColor = '#ff0000';
+      mole.whiskerColor = '#ff0000';
     }
+    return mole;
   };
   game.drawBackground = function () {
     atom.context.beginPath();
@@ -187,16 +216,17 @@
     };
     var innerBox = {
       width: 600,
-      height: 80,
+      height: 150,
       coords: [0,0],
       color: '#34e'
     };
-
     var selectBar = {
       width: 150,
       height: 10,
       color: '#f00'
     };
+    // These moles are just for display
+    var moles = [game.makeMole(0), game.makeMole(1), game.makeMole(2)];
 
     innerBox.coords = computeCenterCoords(innerBox);
     var difficultyLabels = ['Easy', 'Hard', 'Insane'];
@@ -215,6 +245,10 @@
     atom.context.fillText(difficultyLabels[0], innerBox.coords[0] + 8, innerBox.coords[1] + 40);
     atom.context.fillText(difficultyLabels[1], innerBox.coords[0] + innerBox.width/2 - 60, innerBox.coords[1] + 40);
     atom.context.fillText(difficultyLabels[2], innerBox.coords[0] + innerBox.width - 150, innerBox.coords[1] + 40);
+    // draw moles
+    moles[0].draw(innerBox.coords[0] + 80, innerBox.coords[1] + 100);
+    moles[1].draw(innerBox.coords[0] + innerBox.width/2 - 10, innerBox.coords[1] + 100);
+    moles[2].draw(innerBox.coords[0] + innerBox.width - 90, innerBox.coords[1] + 100);
     // draw select bar in correct position
     atom.context.fillStyle = selectBar.color;
     if (game.difficulty === 0) {
