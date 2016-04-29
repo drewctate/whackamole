@@ -6,6 +6,25 @@
   }
   atom.currentMoleTime = 0;
   atom.tillNewMole = 2;
+  game.bop = {
+    bopped: true,
+    total:0,
+    draw: function(){
+      atom.context.fillStyle = '#000';
+      atom.context.font = '130px monospace';
+      atom.context.fillText('Score: ' + this.total, 300, 200);
+    },
+    with_key: function(key){
+      if (!!(game.activeMole + 1) === true && key === game.holes[game.activeMole].holeLabel) {
+        this.total += 1;
+        game.activeMole = -1; // no active mole
+        this.bopped = true;
+      }
+      else{
+        if (this.total > 0) this.total -= 1;
+      }
+    }
+  };
   game.update = function(dt) {
     atom.currentMoleTime += dt;
     if (atom.currentMoleTime > atom.tillNewMole) {
@@ -16,7 +35,7 @@
       game.activeMole = newActive;
       atom.currentMoleTime = 0;
       if (game.bop.bopped === false) {
-        game.bop.total -= 1;
+        if (game.bob.total >= 0) game.bop.total -= 1;
       } else {
         game.bop.bopped = false;
       }
@@ -24,25 +43,6 @@
     for (var i = 0; i < game.keys.length; i++) {
       if (atom.input.pressed(game.keys[i])) {
         game.bop.with_key(game.keys[i]);
-      }
-    }
-  };
-  game.bop = {
-    bopped: true,
-    total:0,
-    draw: function(){
-      atom.context.fillStyle = '#000';
-      atom.context.font = '130px monospace';
-      atom.context.fillText('Score: ' + this.total, 300, 200);
-    },
-    with_key: function(key){
-      if (!!(game.activeMole + 1) === true && key === game.holes[game.activeMole].holeLabel){
-        this.total += 1;
-        game.activeMole = -2; // no active mole
-        this.bopped = true;
-      }
-      else{
-        this.total -= 1;
       }
     }
   };
