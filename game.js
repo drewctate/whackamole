@@ -57,7 +57,7 @@
         game.activeMole = newActive;
         atom.currentMoleTime = 0;
         if (game.bop.bopped === false) {
-          if (game.bob.total >= 0) game.bop.total -= 1;
+          if (this.bop.total > 0) game.bop.total -= 1;
         } else {
           game.bop.bopped = false;
         }
